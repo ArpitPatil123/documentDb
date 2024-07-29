@@ -1,0 +1,61 @@
+name: Deploy DocumentDB
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Create DocumentDB Subnet Group
+        run: |
+          aws docdb create-db-subnet-group \
+            --db-subnet-group-name my-subnet-group \
+            --db-subnet-group-description "My DocumentDB subnet group" \
+            --subnet-ids subnet-12345678 subnet-23456789
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Create DocumentDB Cluster
+        run: |
+          aws docdb create-db-cluster \
+            --db-cluster-identifier my-docdb-cluster \
+            --engine docdb \
+            --master-username myusername \
+            --master-user-password mypassword \
+            --vpc-security-group-ids sg-12345678 \
+            --db-subnet-group-name my-subnet-group
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Create DocumentDB Instance
+        run: |
+          aws docdb create-db-instance \
+            --db-cluster-identifier my-docdb-cluster \
+            --db-instance-identifier my-docdb-instance \
+            --db-instance-class db.r5.large
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Get DocumentDB Cluster Endpoint
+        id: endpoint
+        run: |
+          endpoint=$(aws docdb describe-db-clusters --db-cluster-identifier my-docdb-cluster --query 'DBClusters[0].Endpoint' --output text)
+          echo "DB_ENDPOINT=${endpoint}" >> $GITHUB_ENV
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Output Cluster Endpoint
+        run: echo "Document DB link is - ${{env.DB_ENDPOINT}}"
