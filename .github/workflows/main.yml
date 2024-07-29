@@ -50,7 +50,7 @@ jobs:
       - name: Create DocumentDB Subnet Group
         run: |
           aws docdb create-db-subnet-group \
-            --db-subnet-group-name my-subnet-group \
+            --db-subnet-group-name my-subnet-group-arpit \
             --db-subnet-group-description "My DocumentDB subnet group" \
             --subnet-ids ${{ env.SUBNET_ID_1 }} ${{ env.SUBNET_ID_2 }}
         env:
