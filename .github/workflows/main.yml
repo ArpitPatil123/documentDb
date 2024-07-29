@@ -73,7 +73,8 @@ jobs:
           aws docdb create-db-instance \
             --db-cluster-identifier my-docdb-cluster \
             --db-instance-identifier my-docdb-instance \
-            --db-instance-class db.r5.large
+            --db-instance-class db.r5.large \
+            --engine docdb
         env:
           AWS_DEFAULT_REGION: us-east-1
 
